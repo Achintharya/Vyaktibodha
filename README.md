@@ -12,5 +12,5 @@ It uses MistralAI (Mistral-small-latest) for generating embeddings and conversat
 
 ##Example Conversation
 
-- What is your professional experience?
-I have extensive experience in AI and machine learning, with a focus on NLP. I've worked on various projects including RAG models and more.
+What is your professional experience?
+-I have extensive experience in AI and machine learning, with a focus on NLP. I've worked on various projects including RAG models and more.
