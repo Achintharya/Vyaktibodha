@@ -36,7 +36,7 @@ async function createEmbeddings(sentences) {
     }
 }
 
-const sentences = await splitDocument('AI_Achinth/resume_update.txt');
+const sentences = await splitDocument('resume_update.txt');
 const embeddings = await createEmbeddings(sentences);
 
 await supabase.from('my_resume').insert(embeddings);
