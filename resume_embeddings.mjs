@@ -1,9 +1,13 @@
-import { promises as fs } from 'fs';
-import MistralClient from "@mistralai/mistralai";
+import { Mistral } from "@mistralai/mistralai";
 import { createClient } from "@supabase/supabase-js";
+import dotenv from 'dotenv';
+import * as fs from 'fs/promises'; // Import fs to read the file
 
-const client = new MistralClient("u2J9xMhy5qFjgpzMaCCT7YnoCIq1kjlH");
-const supabase = createClient("https://bewwfdiqefwvthokopxy.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJld3dmZGlxZWZ3dnRob2tvcHh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTkyMTk0NTcsImV4cCI6MjAzNDc5NTQ1N30.o5JY0pPTp1Kt_We67jL_WR_G8iwsm7hjRtF8HYKOcao");
+// Load environment variables from a .env file
+dotenv.config();
+
+const client = new Mistral(process.env.MISTRAL_API_KEY);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 async function splitDocument(path) {
     try {
@@ -19,14 +23,14 @@ async function splitDocument(path) {
 
 async function createEmbeddings(sentences) {
     try {
-        const embeddings = await client.embeddings({
+        const embeddingsResponse = await client.embeddings.create({
             model: 'mistral-embed',
-            input: sentences
+            inputs: sentences // Changed to 'inputs'
         });
         const data = sentences.map((sentence, i) => {
             return {
                 content: sentence,
-                embedding: embeddings.data[i].embedding
+                embedding: embeddingsResponse.data[i].embedding
             };
         });
         return data;
@@ -36,9 +40,30 @@ async function createEmbeddings(sentences) {
     }
 }
 
-const sentences = await splitDocument('resume_update.txt');
-const embeddings = await createEmbeddings(sentences);
+// Wrap in an async function to use await at the top level
+(async () => {
+    try {
+        const sentences = await splitDocument('resume_update.txt');
+        if (sentences.length === 0) {
+            console.log("No sentences found to process.");
+            return;
+        }
 
-await supabase.from('my_resume').insert(embeddings);
+        const embeddings = await createEmbeddings(sentences);
+        if (embeddings.length === 0) {
+            console.log("No embeddings were created.");
+            return;
+        }
 
-console.log("Upload complete!");
+        // Insert embeddings into Supabase
+        const { data, error } = await supabase.from('my_resume').insert(embeddings);
+
+        if (error) {
+            console.error("Error uploading embeddings:", error);
+        } else {
+            console.log("Upload complete!", data);
+        }
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+})();
