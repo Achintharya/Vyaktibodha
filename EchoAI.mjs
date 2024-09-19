@@ -1,4 +1,4 @@
-import { Mistral } from "@mistralai/mistralai";
+import Mistral from "@mistralai/mistralai";
 import { createClient } from "@supabase/supabase-js";
 import * as readline from "readline";
 import dotenv from 'dotenv';
@@ -36,7 +36,7 @@ async function processInput() {
     }
 
     try {
-      const embedding = await createEmbedding([input]); // Pass input as an array
+      const embedding = await createEmbedding([input]);
       if (!embedding) {
         throw new Error("Failed to create embedding for input.");
       }
@@ -56,15 +56,12 @@ async function processInput() {
   });
 }
 
-async function createEmbedding(inputArray) { // inputArray is an array of strings
+async function createEmbedding(inputArray) {
   try {
-    console.log("Creating embedding for input:", inputArray); // Debugging statement
-    const embeddingResponse = await mistralClient.embeddings.create({
+    const embeddingResponse = await mistralClient.embeddings({
       model: 'mistral-embed',
-      inputs: inputArray // Ensure input is correctly passed as `inputs`, not `input`
+      input: inputArray // Ensure input is correctly passed as `input`
     });
-
-    console.log("Embedding response:", embeddingResponse); // Debugging statement
 
     if (embeddingResponse?.data && embeddingResponse.data.length > 0 && embeddingResponse.data[0].embedding) {
       return embeddingResponse.data[0].embedding;
@@ -72,18 +69,20 @@ async function createEmbedding(inputArray) { // inputArray is an array of string
       throw new Error("Unexpected response structure from the embeddings API.");
     }
   } catch (error) {
-    console.log("Error creating embedding:", error.message); // Debugging statement
+    console.error("Error creating embedding:", error.message);
     return null;
   }
 }
 
 async function retrieveMatches(embedding) {
   try {
-    const { data } = await supabase.rpc('match_my_resume', {
+    const { data, error } = await supabase.rpc('match_my_resume', {
       query_embedding: embedding,
       match_threshold: 0.7,
       match_count: 3
     });
+
+    if (error) throw error;
 
     if (!data || !Array.isArray(data) || data.length === 0) {
       throw new Error("No matching content found.");
@@ -91,7 +90,7 @@ async function retrieveMatches(embedding) {
 
     return data[0].content;
   } catch (error) {
-    console.log("Error retrieving matches:", error.message); // Debugging statement
+    console.error("Error retrieving matches:", error.message);
     return null;
   }
 }
@@ -117,7 +116,6 @@ async function generateChatResponse(context, query) {
       for await (const chunk of chatStreamResponse) {
         const streamText = chunk.choices[0].delta.content;
         if (process.stdout.write(streamText)) {
-          finalResponse += streamText;
         }
       }
       return finalResponse;
@@ -127,6 +125,9 @@ async function generateChatResponse(context, query) {
         if (attempt < BACKOFF_MAX_ATTEMPTS) {
           await backoff(attempt);
         }
+      } else {
+        console.error("Error generating chat response:", error.message);
+        break; // Break the loop on other errors
       }
     }
   }

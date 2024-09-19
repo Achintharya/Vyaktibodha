@@ -1,2 +1,0 @@
-Achintharya is currently working at a startup called Intelligent Edge Systems(IES).
-IES works on deployment of AI on edge devices.

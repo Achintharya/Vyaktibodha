@@ -1,4 +1,4 @@
-import { Mistral } from "@mistralai/mistralai";
+import Mistral from "@mistralai/mistralai";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from 'dotenv';
 import * as fs from 'fs/promises'; // Import fs to read the file
@@ -23,9 +23,9 @@ async function splitDocument(path) {
 
 async function createEmbeddings(sentences) {
     try {
-        const embeddingsResponse = await client.embeddings.create({
+        const embeddingsResponse = await client.embeddings({
             model: 'mistral-embed',
-            inputs: sentences // Changed to 'inputs'
+            input: sentences // Changed to 'input'
         });
         const data = sentences.map((sentence, i) => {
             return {
