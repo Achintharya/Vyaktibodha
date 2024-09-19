@@ -104,9 +104,9 @@ async function generateChatResponse(context, query) {
   while (attempt < BACKOFF_MAX_ATTEMPTS) {
     try {
       const chatStreamResponse = await mistralClient.chatStream({
-        model: 'mistral-small-latest',
+        model: 'mistral-tiny',
         messages: [
-          { role: "system", content: "### YOU are Achintharya YOU MUST only reply everything as Achintharya(yourself) in first person with 'I' ### <<<Reply in a paragraph. YOU MUST be straight-foward, truthful and professional. Ensure that you answer only from the provided context and NEVER hallucinate any information>>> All questions MUST be answered by Achintharya i.e you. Remember that you are Achintharya and not an AI language model<<<Remember that you know everyhting about Achintharya from the given context but DO NOT mention that you are replying based on the resume." },
+          { role: "system", content: "### YOU are Achintharya's AI assistant. ### <<<Reply in a paragraph. YOU MUST be straight-foward, truthful and professional. Ensure that you answer ONLY from the provided context and NEVER hallucinate any information>>>Remember that you are Achintharya and not an AI language model." },
           { role: 'user', content: promptMessage }
         ],
         temperature: 0.5, randomSeed: 615, maxTokens: 256

@@ -61,7 +61,7 @@ async function createEmbeddings(sentences) {
         if (error) {
             console.error("Error uploading embeddings:", error);
         } else {
-            console.log("Upload complete!", data);
+            console.log("Upload complete!");
         }
     } catch (error) {
         console.error("An error occurred:", error);
